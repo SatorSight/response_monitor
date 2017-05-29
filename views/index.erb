@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,user-scalable=no">
+    <meta http-equiv="imagetoolbar" content="no">
+    <title>TDS monitoring tool</title>
+
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"
+	integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+	crossorigin="anonymous"></script>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.bundle.js" ></script>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			var ctx = document.getElementById('myChart').getContext('2d');
+			var chart = new Chart(ctx, {
+			    // The type of chart we want to create
+			    type: 'line',
+
+			    // The data for our dataset
+			    data: {
+			        labels: [
+				        <% rows.each do |row| %>
+				        	<% if type == 'hour' %>
+				        	"<%= row['first'] %> <%=row['second'] %>:00",
+				        	<% else %>
+				        	"<%= row['first'] %> <%=row['hour'] %>:<%=row['second'] %>",
+				        	<% end %>
+				        <% end %>
+			        ],
+			        datasets: [{
+			        	<% if type == 'hour' %>
+			            	label: "Average response time per hour",
+			            <% else %>
+			            	label: "Average response time per minute",
+			            <% end %>
+			            backgroundColor: 'aquamarine',
+			            borderColor: '#333',
+
+			            data: [
+				            <% rows.each do |row| %>
+				            	<%= row['timeout'] %>,
+				            <% end %>
+			            ],
+			        }]
+			    },
+			    options: {}
+			});
+
+			data = {
+			    datasets: [{
+			        data: [10, 20, 30]
+			    }],
+
+			    // These labels appear in the legend and in the tooltips when hovering different arcs
+			    labels: [
+			        'Red',
+			        'Yellow',
+			        'Blue'
+			    ]
+			};
+
+
+			var randomScalingFactor = function() {
+		        return Math.round(Math.random() * 100);
+		    };
+
+		    var config = {
+		        type: 'pie',
+		        data: {
+		            datasets: [{
+		                data: [
+		                    randomScalingFactor(),
+		                    randomScalingFactor(),
+		                    randomScalingFactor(),
+		                    randomScalingFactor(),
+		                    randomScalingFactor(),
+		                ],
+		                backgroundColor: [
+		                    'black',
+		                    'black',
+		                    'black',
+		                    'black',
+		                    'black',
+		                ],
+		                label: 'Dataset 1'
+		            }],
+		            labels: [
+		                "Red",
+		                "Orange",
+		                "Yellow",
+		                "Green",
+		                "Blue"
+		            ]
+		        },
+		        options: {
+		            responsive: true
+		        }
+		    };
+
+			var ctx2 = document.getElementById("chart-area").getContext("2d");
+        	window.myPie = new Chart(ctx2, config);
+
+
+
+		});
+	</script>
+</head>
+<body>
+<div class="container" id="admin-container">
+    <div class="jumbotron" style="margin-top: 10px; padding-top: 18px; padding-bottom: 18px; background:#333;  font-family: monospace;">
+        <div class="row">
+            <h2 class="col-sm-6" id="admin-terminal" style="color: aquamarine;"> TDS monitoring tool</h2>
+            <h2 class="col-sm-3"><a style="color:aquamarine; text-decoration: underline;" href="/minutes">minutes</a></h2>
+            <h2 class="col-sm-3"><a style="color:aquamarine; text-decoration: underline;" href="/hours">hours</a></h2>
+        </div>
+    </div>
+	<h2><%= h1 %></h2>
+	<br>
+    <div class="row" style="margin-left: 10px;">
+    	<form action="" method="post" style="display:inline-block;">
+    		<label for="from">From</label>
+    		<input style="margin-right: 25px;" value="<%= Date.today.prev_day %>" id="from" type="date" name="from">
+    		<label for="to">To</label>
+    		<input style="margin-right: 25px;" value="<%= Date.today.next_day %>" id="to" type="date" name="to">
+    		<button class="btn" type="submit">Refresh</button>
+    	</form>
+    	<div class="media" style="position: absolute; width: 100px; right: 340px; margin-top: -30px;">
+			<div class="media-left">
+				<div style="background: <%= $running == 'Not running' ? 'red' : 'aquamarine'; %>;width: 20px;height: 20px;border-radius: 50%;"></div>
+			</div>
+			<div class="media-body" style="">
+				<p><%= $running %></p>
+			</div>
+		</div>
+    </div>
+    <br>
+    <div class="row">
+        <div class="admin-wrapper">
+			<canvas id="myChart" width="600" height="400"></canvas>
+        </div>
+        <h2>Status codes</h2>
+        <div class="admin-wrapper">
+			<canvas id="chart-area" width="600" height="400"></canvas>
+        </div>
+    </div>
+</div>
+</body>
+</html>
