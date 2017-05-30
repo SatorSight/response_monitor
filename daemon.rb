@@ -1,7 +1,9 @@
+config_file = './local_config.rb'
+require config_file if File.file? config_file
 require 'net/http'
-require 'mysql'
+require 'mysql2'
 
-con = Mysql.new 'localhost', 'root', '123', 'tds_measure'
+$con = Mysql2::Client.new host:DB_HOST, username:DB_USER, password:DB_PASS, database:DB_DATABASE
 uri = URI('http://ad.blinko.ru')
 
 #the one with two redirects
@@ -62,13 +64,13 @@ while true
 	diff = (finish - start) * 1000.0
 	diff = diff.round
 
-	rs = con.query 'insert into measure (`response`, `code`) values ('+diff.to_s+', '+resp.code+')'
+	rs = $con.query 'insert into measure (`response`, `code`) values ('+diff.to_s+', '+resp.code+')'
 
 	#double redirect testing
 	timings = make_two_redirects uri_with_redirect
-	rs = con.query 'insert into measure_redirects (`first`, `second`, `third`) values ('+timings[0].to_s+', '+timings[1].to_s+', '+timings[2].to_s+');'
+	rs = $con.query 'insert into measure_redirects (`first`, `second`, `third`) values ('+timings[0].to_s+', '+timings[1].to_s+', '+timings[2].to_s+');'
 
 	sleep 1
 end
 
-con.close if con
+$con.close if $con

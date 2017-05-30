@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 5.7.18, for Linux (x86_64)
 --
--- Host: localhost    Database: tds_measure
+-- Host: 127.0.0.1    Database: tds_measure
 -- ------------------------------------------------------
 -- Server version	5.7.18-0ubuntu0.16.10.1
 
@@ -25,7 +25,7 @@ DROP TABLE IF EXISTS `measure`;
 CREATE TABLE `measure` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `response` int(11) DEFAULT NULL,
-  `timestamp` datetime DEFAULT CURRENT_TIMESTAMP,
+  `timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `code` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `measure_id_uindex` (`id`)
@@ -54,7 +54,7 @@ CREATE TABLE `measure_redirects` (
   `first` int(11) DEFAULT NULL,
   `second` int(11) DEFAULT NULL,
   `third` int(11) DEFAULT NULL,
-  `timestamp` datetime DEFAULT CURRENT_TIMESTAMP,
+  `timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `code` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `measure_redirects_id_uindex` (`id`)
@@ -80,4 +80,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-05-30 14:45:05
+-- Dump completed on 2017-05-30 15:03:17

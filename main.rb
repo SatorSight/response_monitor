@@ -3,7 +3,7 @@ require config_file if File.file? config_file
 require "sinatra"
 require 'mysql'
 
-$con = Mysql.new DB_HOST, DB_USER, DB_PASS, DB_DATABASE
+$con = Mysql2::Client.new DB_HOST, DB_USER, DB_PASS, DB_DATABASE
 $running = `ps aux | grep daemon.rb`.empty? ? 'Not running' : 'Running'
 
 selectionAllHours = 	'SELECT AVG(response) as timeout, HOUR(timestamp) as second, DATE(timestamp) as first
