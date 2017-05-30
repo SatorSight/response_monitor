@@ -1,12 +1,12 @@
 config_file = './local_config.rb'
 require config_file if File.file? config_file
 require "sinatra"
-require 'mysql'
+require 'mysql2'
 
-$con = Mysql2::Client.new DB_HOST, DB_USER, DB_PASS, DB_DATABASE
+$con = Mysql2::Client.new host:DB_HOST, username:DB_USER, password:DB_PASS, database:DB_DATABASE
 $running = `ps aux | grep daemon.rb`.empty? ? 'Not running' : 'Running'
 
-selectionAllHours = 	'SELECT AVG(response) as timeout, HOUR(timestamp) as second, DATE(timestamp) as first
+selectionAllHours = 	'SELECT AVG(response) as timeout, HOUR(timestamp) as hour, DATE(timestamp) as first
 					 	FROM measure
 					 	WHERE DATE_SUB(timestamp, INTERVAL 1 HOUR) AND code = 200 replace
 					 	GROUP BY HOUR(timestamp), DATE(timestamp);'
@@ -28,7 +28,7 @@ def getRows (query, from = Date.today.prev_day.to_s, to = Date.today.next_day.to
 	query.sub! 'replace', 'AND timestamp BETWEEN "'+from+'" AND "'+to+'"' if query.include? 'replace'
 	
 	rs = $con.query query
-	rs.each_hash do |h|
+	rs.each do |h|
 		rows.push h
 	end
 	rows

@@ -95,9 +95,12 @@
 			                avg_first, avg_second, avg_third = 0, 0, 0
 
 			            	redirects.each do |redirect| 
-			            		sum_first += (redirect['first'].to_s.sub! /(.*)\..*/, '\1').to_i
-			            		sum_second += (redirect['second'].to_s.sub! /(.*)\..*/, '\1').to_i
-			            		sum_third += (redirect['third'].to_s.sub! /(.*)\..*/, '\1').to_i
+			            		temp = ((redirect['first'].to_s.sub! /(.*)e.*/, '\1').to_f * 1000).to_s
+			            		sum_first += (temp.sub! /(.*)\.*/, '\1').to_i
+			            		temp = ((redirect['second'].to_s.sub! /(.*)e.*/, '\1').to_f * 1000).to_s
+			            		sum_second += (temp.sub! /(.*)\.*/, '\1').to_i
+			            		temp = ((redirect['third'].to_s.sub! /(.*)e.*/, '\1').to_f * 1000).to_s
+			            		sum_third += (temp.sub! /(.*)\.*/, '\1').to_i
 			            	end 
 
 			            	avg_first = sum_first / redirects.count
@@ -143,6 +146,7 @@
 	</script>
 </head>
 <body>
+<%#= redirects %>
 <div class="container" id="admin-container">
     <div class="jumbotron" style="margin-top: 10px; padding-top: 18px; padding-bottom: 18px; background:#333;  font-family: monospace;">
         <div class="row">
