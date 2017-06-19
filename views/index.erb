@@ -29,10 +29,24 @@
 			    data: {
 			        labels: [
 				        <% rows.each do |row| %>
-				        	<% if type.eql? 'hours' %>
-				        	"<%= row['first'] %> <%=row['second'] %>:00",
-				        	<% else %>
-				        	"<%= row['first'] %> <%=row['hour'] %>:<%=row['second'] %>",
+				        	<% if type.eql? 'hours' 
+				        		label = row['first'].strftime("%Y-%m-%d")
+				        		label = label.to_s + ' ' + row['hour'].to_s + ':00'%>
+				        		"<%= label %>",
+				        	<% else 
+				        		second = row['second'].to_s
+				        		if row['second'] < 10
+				        			second = '0' << second
+				        		end
+				        		hour = row['hour'].to_s
+				        		if row['hour'] < 10
+				        			hour = '0' << hour
+				        		end
+
+
+
+				        	%>
+				        		"<%= row['first'] %> <%=hour %>:<%=second %>",
 				        	<% end %>
 				        <% end %>
 			        ],
@@ -95,25 +109,33 @@
 			                avg_first, avg_second, avg_third = 0, 0, 0
 
 			            	redirects.each do |redirect| 
-			            		temp = ((redirect['first'].to_s.sub! /(.*)e.*/, '\1').to_f * 1000).to_s
-			            		sum_first += (temp.sub! /(.*)\.*/, '\1').to_i
-			            		temp = ((redirect['second'].to_s.sub! /(.*)e.*/, '\1').to_f * 1000).to_s
-			            		sum_second += (temp.sub! /(.*)\.*/, '\1').to_i
-			            		temp = ((redirect['third'].to_s.sub! /(.*)e.*/, '\1').to_f * 1000).to_s
-			            		sum_third += (temp.sub! /(.*)\.*/, '\1').to_i
+			            		# temp = ((redirect['first'].to_s.sub! /(.*)e.*/, '\1').to_f * 1000).to_s
+			            		# sum_first += (temp.sub! /(.*)\.*/, '\1').to_i
+			            		# temp = ((redirect['second'].to_s.sub! /(.*)e.*/, '\1').to_f * 1000).to_s
+			            		# sum_second += (temp.sub! /(.*)\.*/, '\1').to_i
+			            		# temp = ((redirect['third'].to_s.sub! /(.*)e.*/, '\1').to_f * 1000).to_s
+			            		# sum_third += (temp.sub! /(.*)\.*/, '\1').to_i
+
+			            		sum_first += redirect['first']
+			            		sum_second += redirect['second']
+			            		sum_third += redirect['third']
 			            	end 
 
-			            	avg_first = sum_first / redirects.count
-			            	avg_first = avg_first.round
+			            	if redirects.count == 0
+			            		avg_first = 0 
+			            		avg_second = 0
+			            		avg_third = 0
+			            	else
+				            	avg_first = sum_first / redirects.count
+				            	avg_first = avg_first.round
 
-			            	avg_second = sum_second / redirects.count
-			            	avg_second = avg_second.round
+				            	avg_second = sum_second / redirects.count
+				            	avg_second = avg_second.round
 
-			            	avg_third = sum_third / redirects.count
-			            	avg_third = avg_third.round
-
+				            	avg_third = sum_third / redirects.count
+				            	avg_third = avg_third.round
+			            	end
 			            	%>
-
 			            	<%= avg_first.to_s %>,
 			            	<%= avg_second.to_s %>,
 			            	<%= avg_third.to_s %>
@@ -146,7 +168,7 @@
 	</script>
 </head>
 <body>
-<%#= redirects %>
+<%#= rows %>
 <div class="container" id="admin-container">
     <div class="jumbotron" style="margin-top: 10px; padding-top: 18px; padding-bottom: 18px; background:#333;  font-family: monospace;">
         <div class="row">
@@ -160,16 +182,16 @@
     <div class="row" style="margin-left: 10px;">
     	<form action="" method="post" style="display:inline-block;">
     		<label for="from">From</label>
-    		<input style="margin-right: 25px;" value="<%= Date.today.prev_day %>" id="from" type="date" name="from">
+    		<input style="margin-right: 25px;" value="<%= from %>" id="from" type="datetime-local" name="from">
     		<label for="to">To</label>
-    		<input style="margin-right: 25px;" value="<%= Date.today.next_day %>" id="to" type="date" name="to">
+    		<input style="margin-right: 25px;" value="<%= to %>" id="to" type="datetime-local" name="to">
     		<button class="btn" type="submit">Refresh</button>
     	</form>
-    	<div class="media" style="position: absolute; width: 100px; right: 340px; margin-top: -30px;">
+    	<div class="media" style="position: absolute; width: 140px; right: 340px; margin-top: -30px;">
 			<div class="media-left">
 				<div style="background: <%= $running == 'Not running' ? 'red' : 'aquamarine'; %>;width: 20px;height: 20px;border-radius: 50%;"></div>
 			</div>
-			<div class="media-body" style="">
+			<div class="media-body">
 				<p><%= $running %></p>
 			</div>
 		</div>

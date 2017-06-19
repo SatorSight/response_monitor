@@ -2,32 +2,35 @@ config_file = './local_config.rb'
 require config_file if File.file? config_file
 require "sinatra"
 require 'mysql2'
+require 'date'
 
 $con = Mysql2::Client.new host:DB_HOST, username:DB_USER, password:DB_PASS, database:DB_DATABASE
-$running = `ps aux | grep daemon.rb`.empty? ? 'Not running' : 'Running'
+$running = (`ps aux | grep daemon.rb`.include? "ruby daemon.rb") ? 'Running' : 'Not running'
 
 selectionAllHours = 	'SELECT AVG(response) as timeout, HOUR(timestamp) as hour, DATE(timestamp) as first
 					 	FROM measure
 					 	WHERE DATE_SUB(timestamp, INTERVAL 1 HOUR) AND code = 200 replace
-					 	GROUP BY HOUR(timestamp), DATE(timestamp);'
+					 	GROUP BY HOUR(timestamp), DATE(timestamp) ORDER BY timestamp;'
 
 selectionAllMinutes =   'SELECT AVG(response) as timeout, MINUTE(timestamp) as second, DATE(timestamp) as first, HOUR(timestamp) as hour
 						FROM measure
 						WHERE DATE_SUB(timestamp, INTERVAL 1 MINUTE) AND code = 200 replace
-						GROUP BY MINUTE(timestamp), DATE(timestamp), HOUR(timestamp);'
+						GROUP BY MINUTE(timestamp), DATE(timestamp), HOUR(timestamp) ORDER BY timestamp;'
 
-selectionCodes = 		'select count(code) as c, code from measure GROUP BY code;'
+selectionCodes = 		'select count(code) as c, code from measure WHERE id IS NOT NULL replace GROUP BY code;'
 
 selectionRedirects =    'SELECT AVG(first) as first, AVG(second) as second, AVG(third) as third, MINUTE(timestamp) as minute, DATE(timestamp) as date, HOUR(timestamp) as hour
 						FROM measure_redirects
 						WHERE DATE_SUB(timestamp, INTERVAL 1 MINUTE) replace
 						GROUP BY MINUTE(timestamp), DATE(timestamp), HOUR(timestamp);'
 
-def getRows (query, from = Date.today.prev_day.to_s, to = Date.today.next_day.to_s)
+def getRows (query, from, to)
 	rows = []
 	query.sub! 'replace', 'AND timestamp BETWEEN "'+from+'" AND "'+to+'"' if query.include? 'replace'
-	
+
 	rs = $con.query query
+
+	#abort rs.count.to_s
 	rs.each do |h|
 		rows.push h
 	end
@@ -46,19 +49,22 @@ end
 get_or_post "/*" do
 	route = params['splat'].pop
 
-	from = Date.today.prev_day
-	to = Date.today.next_day
+	from = DateTime.now - 1
+	to = DateTime.now + 1
+
+	from = from.strftime("%Y-%m-%dT%H:%M:%S")
+	to = to.strftime("%Y-%m-%dT%H:%M:%S")
 
 	from = params[:from] unless params[:from].nil? || params[:from].empty?
 	to = params[:to] unless params[:to].nil? || params[:to].empty?
 
 	if route.eql? "hours"
-		rows = getRows selectionAllHours
+		rows = getRows selectionAllHours, from.to_s, to.to_s
 	else
-		rows = getRows selectionAllMinutes
+		rows = getRows selectionAllMinutes, from.to_s, to.to_s
 	end
-	codes = getRows selectionCodes
-	redirects = getRows selectionRedirects
+	codes = getRows selectionCodes, from.to_s, to.to_s
+	redirects = getRows selectionRedirects, from.to_s, to.to_s
 
 	erb:index, :locals => {
     	:rows => rows, 
