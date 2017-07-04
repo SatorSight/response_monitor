@@ -68,14 +68,18 @@ begin
 	diff = (finish - start) * 1000.0
 	diff = diff.round
 
+  `ruby mail.rb` if diff > 10000
+
 	rs = $con.query 'insert into measure (`response`, `code`) values ('+diff.to_s+', '+resp.code+')'
 
 	#double redirect testing
 	timings = make_two_redirects uri_with_redirect
 	rs = $con.query 'insert into measure_redirects (`first`, `second`, `third`) values ('+timings[0].to_s+', '+timings[1].to_s+', '+timings[2].to_s+');'
-  sleep 1
+  sleep 10
 
 rescue Exception
+
+  `ruby mail.rb`
 
 	sleep 10
 end
