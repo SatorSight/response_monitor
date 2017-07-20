@@ -24,6 +24,11 @@ selectionRedirects =    'SELECT AVG(first) as first, AVG(second) as second, AVG(
 						WHERE DATE_SUB(timestamp, INTERVAL 1 MINUTE) replace
 						GROUP BY MINUTE(timestamp), DATE(timestamp), HOUR(timestamp);'
 
+selectionRedirectsLocal =    'SELECT AVG(first) as first, AVG(second) as second, AVG(third) as third, MINUTE(timestamp) as minute, DATE(timestamp) as date, HOUR(timestamp) as hour
+						FROM measure_redirects
+						WHERE DATE_SUB(timestamp, INTERVAL 1 MINUTE) AND local = 1
+						GROUP BY MINUTE(timestamp), DATE(timestamp), HOUR(timestamp) ORDER BY timestamp;'
+
 def getRows (query, from, to)
 	rows = []
 	query.sub! 'replace', 'AND timestamp BETWEEN "'+from+'" AND "'+to+'"' if query.include? 'replace'
@@ -66,6 +71,10 @@ get_or_post "/*" do
 	codes = getRows selectionCodes, from.to_s, to.to_s
 	redirects = getRows selectionRedirects, from.to_s, to.to_s
 
+	redirectsLocal = getRows selectionRedirectsLocal, from.to_s, to.to_s
+
+	#abort redirectsLocal.to_s
+
 	erb:index, :locals => {
     	:rows => rows, 
     	:type => route, 
@@ -73,6 +82,7 @@ get_or_post "/*" do
     	:from => from, 
     	:to => to, 
     	:codes => codes,
+    	:redirectsLocal => redirectsLocal,
     	:redirects => redirects
     }
 end

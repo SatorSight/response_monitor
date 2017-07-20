@@ -24,6 +24,7 @@
 	<script type="text/javascript">
 		$(document).ready(function(){
 			var ctx = document.getElementById('myChart').getContext('2d');
+			var ctxl = document.getElementById('myChart2').getContext('2d');
 			var chart = new Chart(ctx, {
 			    type: 'line',
 			    data: {
@@ -67,6 +68,90 @@
 			        }]
 			    },
 			    options: {}
+			});
+
+			var chart2 = new Chart(ctxl, {
+			    type: 'line',
+			    data: {
+			        labels: [
+				        <% redirectsLocal.each do |row|
+				        		second = row['minute'].to_s
+				        		if row['minute'] < 10
+				        			second = '0' << second
+				        		end
+				        		hour = row['hour'].to_s
+				        		if row['hour'] < 10
+				        			hour = '0' << hour
+				        		end
+			        	%>
+				        		"<%=hour %>:<%=second %>",
+				        	
+				        <% end %>
+			        ],
+			        datasets: [{
+			        	label: "Me -> TDS",
+			        	fill: false,
+			            backgroundColor: 'blue',
+                    	borderColor: 'blue',
+
+			            data: [
+				            <% redirectsLocal.each do |row| %>
+				            	<%= row['first'] %>,
+				            <% end %>
+			            ],
+			        },
+			        {
+			        	label: "TDS -> CAT",
+			        	fill: false,
+			            backgroundColor: 'red',
+                    	borderColor: 'red',
+
+			            data: [
+				            <% redirectsLocal.each do |row| %>
+				            	<%= row['second'] %>,
+				            <% end %>
+			            ],
+			        },
+			        {
+			        	label: "CAT -> Operator",
+			        	fill: false,
+			            backgroundColor: 'yellow',
+                    	borderColor: 'yellow',
+
+			            data: [
+				            <% redirectsLocal.each do |row| %>
+				            	<%= row['third'] %>,
+				            <% end %>
+			            ],
+			        }]
+			    },
+			    options: {
+			    	responsive: true,
+	                tooltips: {
+	                    mode: 'index',
+	                    intersect: false,
+	                },
+	                hover: {
+	                    mode: 'nearest',
+	                    intersect: true
+	                },
+	                scales: {
+	                    xAxes: [{
+	                        display: true,
+	                        scaleLabel: {
+	                            display: true,
+	                            labelString: 'Month'
+	                        }
+	                    }],
+	                    yAxes: [{
+	                        display: true,
+	                        scaleLabel: {
+	                            display: true,
+	                            labelString: 'Value'
+	                        }
+	                    }]
+	                }
+			    }
 			});
 
 		    var config = {
@@ -148,9 +233,9 @@
 		                label: 'Dataset 2'
 		            }],
 		            labels: [
-		            	'first',
-		                'second',
-		                'third'
+		            	'Me -> TDS',
+		                'TDS -> CAT',
+		                '-'
 		            ]
 		        },
 		        options: {
@@ -163,6 +248,9 @@
 
         	var ctx3 = document.getElementById("chart-area2").getContext("2d");
         	window.myPie2 = new Chart(ctx3, config2);
+
+        	// var chartTwo = document.getElementById("chart2").getContext("2d");
+        	// window.myChart2 = new Chart(chartTwo, chart2);
 
 		});
 	</script>
@@ -199,6 +287,12 @@
     <br>
     <div class="admin-wrapper">
 		<canvas id="myChart" width="600" height="400"></canvas>
+    </div>
+    <br>
+    <h2>Local measures of redirects(ms):</h2>
+    <br>
+    <div class="admin-wrapper">
+		<canvas id="myChart2" width="600" height="400"></canvas>
     </div>
     <div class="row">
 	    <div class="col-sm-6">
